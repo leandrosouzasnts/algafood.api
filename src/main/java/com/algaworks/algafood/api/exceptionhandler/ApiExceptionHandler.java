@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.lang.ref.Reference;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
@@ -42,11 +44,12 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     private ResponseEntity<Object> handleInvalidFormatException(InvalidFormatException ex, HttpHeaders headers,
         HttpStatus status, WebRequest request) {
 
-        //  'String path = ex.getPath().stream().map()
+        String path = ex.getPath().stream().map(reference -> reference.getFieldName())
+                .collect(Collectors.joining("."));
 
         ProblemTypeException problemTypeException = ProblemTypeException.CORPO_REQUISICAO_DIVERGENTE;
         String detail = String.format("A propriedade %s recebeu o valor %s que é do tipo inválido. Informe um " +
-                "valor compatível com o tipo %s", 'A', ex.getValue(), ex.getTargetType().getSimpleName());
+                "valor compatível com o tipo %s", path, ex.getValue(), ex.getTargetType().getSimpleName());
 
         ProblemException problem = createProblemBuilder(status, problemTypeException, detail).build();
 
